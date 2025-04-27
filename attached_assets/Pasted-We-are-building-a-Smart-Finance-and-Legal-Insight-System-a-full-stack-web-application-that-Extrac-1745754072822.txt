@@ -1,0 +1,128 @@
+We are building a Smart Finance and Legal Insight System, a full-stack web application that:
+
+Extracts key information from uploaded financial or legal documents
+
+Summarizes lengthy legal texts
+
+Detects anomalies in financial transactions
+
+Verifies compliance with regulatory standards (like RBI guidelines)
+
+Visualizes extracted insights clearly through a clean user interface
+
+Key Features:
+Upload financial/legal documents (PDF, JPG, PNG, TXT)
+
+OCR-based data extraction (Tesseract)
+
+Summarization (BART Summarizer)
+
+Anomaly detection (Isolation Forest)
+
+Compliance checking
+
+Visual dashboards and reports
+
+Secure file storage and retrieval
+
+User Authentication (Login Page) for personalized access and history
+
+Tech Stack:
+Frontend: React.js
+
+Backend: Node.js (Express.js)
+
+Database: MongoDB Atlas Cloud (Project Name: Smart Finance)
+
+File Storage: Local server folder (/uploads)
+
+Processing Modules: Tesseract OCR, spaCy NER, Isolation Forest, BART Summarizer
+
+Important Instructions:
+🚨 DO NOT use Replicate’s database, vector DBs, or internal storage.
+
+✅ Use my MongoDB Atlas Cloud database.
+✅ Project name: Smart Finance (currently no collections created).
+
+MongoDB Collections:
+
+users collection for authentication
+
+documents collection for uploaded and processed documents
+
+Folder Structure:
+pgsql
+Copy
+Edit
+smart-finance-legal-system/
+├── client/ (React frontend)
+│   ├── src/
+│   ├── public/
+├── server/ (Node.js backend)
+│   ├── routes/
+│   ├── controllers/
+│   ├── models/ (MongoDB schemas for User and Document)
+│   ├── uploads/
+│   ├── server.js
+├── README.md
+├── .env (MongoDB URI stored here)
+Backend APIs:
+
+Endpoint	Method	Description
+/auth/register	POST	Register a new user
+/auth/login	POST	Login an existing user (returns JWT)
+/upload	POST	Upload a document, process, and store
+/history	GET	Fetch all processed documents
+/document/:id	GET	Fetch details of a specific document
+Authentication Details:
+Use bcrypt for password hashing
+
+Use JWT (JSON Web Token) for user sessions
+
+Secure APIs (like /upload, /history) should require a valid JWT
+
+Save user _id inside documents to associate uploads with users
+
+Optional: Use cookie storage for JWT in frontend or localStorage (choose simple way)
+
+MongoDB Schema:
+users Collection:
+
+
+Field	Type	Description
+_id	ObjectId	Primary key
+name	String	Full name
+email	String	Email (unique)
+password	String	Hashed password
+documents Collection:
+
+
+Field	Type	Description
+_id	ObjectId	Primary key
+user_id	ObjectId	Linked to the user
+file_path	String	Local path to uploaded file
+file_type	String	"Financial" or "Legal"
+summary	String	Summarized version of document
+extracted_data	JSON	Extracted fields
+anomalies	JSON	Detected anomalies
+compliance_status	String	"Pass", "Fail", etc.
+upload_date	Date	Timestamp
+Frontend Requirements:
+Login Page (email + password)
+
+Registration Page
+
+Protected Routes: User must be logged in to upload or view documents
+
+Dashboard showing document history after login
+
+Clean UI, use loading indicators where needed
+
+Handle login errors properly (wrong password, invalid email)
+
+Final Notes:
+Keep sensitive keys (MongoDB URI, JWT Secret) inside .env
+
+Uploads should be stored in local /uploads/ folder on the backend
+
+Frontend should use simple routing: /login, /register, /dashboard, /upload
