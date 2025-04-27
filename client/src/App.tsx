@@ -4,13 +4,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProtectedRoute, PublicOnlyRoute } from "@/components/ProtectedRoute";
 
 // Pages
-import LoginPage from "@/pages/LoginPage";
-import RegisterPage from "@/pages/RegisterPage";
 import DashboardPage from "@/pages/DashboardPage";
 import UploadPage from "@/pages/UploadPage";
 import HistoryPage from "@/pages/HistoryPage";
 import ComparisonPage from "@/pages/ComparisonPage";
 import NotFound from "@/pages/not-found";
+import AuthPage from "./pages/auth-page";
 
 function App() {
   return (
@@ -18,27 +17,15 @@ function App() {
       <Toaster />
       <Switch>
         <Route path="/">
-          <PublicOnlyRoute>
-            <LoginPage />
-          </PublicOnlyRoute>
-        </Route>
-        
-        <Route path="/login">
-          <PublicOnlyRoute>
-            <LoginPage />
-          </PublicOnlyRoute>
-        </Route>
-        
-        <Route path="/register">
-          <PublicOnlyRoute>
-            <RegisterPage />
-          </PublicOnlyRoute>
-        </Route>
-        
-        <Route path="/dashboard">
           <ProtectedRoute>
             <DashboardPage />
           </ProtectedRoute>
+        </Route>
+        
+        <Route path="/auth">
+          <PublicOnlyRoute>
+            <AuthPage />
+          </PublicOnlyRoute>
         </Route>
         
         <Route path="/upload">

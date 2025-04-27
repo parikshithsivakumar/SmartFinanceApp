@@ -8,12 +8,13 @@ type ProtectedRouteProps = {
 };
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { data: user, isLoading } = useAuthUser();
+  const { data, isLoading } = useAuthUser();
   const [, setLocation] = useLocation();
+  const user = data?.user;
 
   useEffect(() => {
     if (!user && !isLoading) {
-      setLocation("/login");
+      setLocation("/auth");
     }
   }, [user, isLoading, setLocation]);
 
@@ -25,12 +26,13 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 }
 
 export function PublicOnlyRoute({ children }: ProtectedRouteProps) {
-  const { data: user, isLoading } = useAuthUser();
+  const { data, isLoading } = useAuthUser();
   const [, setLocation] = useLocation();
+  const user = data?.user;
 
   useEffect(() => {
     if (user && !isLoading) {
-      setLocation("/dashboard");
+      setLocation("/");
     }
   }, [user, isLoading, setLocation]);
 
