@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Link } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
+import { useLogin } from "@/hooks/use-auth-simple";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,8 +20,9 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const { login, isLoading } = useAuth();
+  const login = useLogin();
   const [error, setError] = useState("");
+  const isLoading = login.isPending;
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -35,7 +36,10 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginFormValues) => {
     try {
       setError("");
-      await login(values.email, values.password);
+      await login.mutateAsync({
+        email: values.email,
+        password: values.password
+      });
     } catch (err) {
       setError("Invalid email or password. Please try again.");
     }

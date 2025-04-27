@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Link } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ const registerSchema = z.object({
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
-  const { register, isLoading } = useAuth();
+  const { registerMutation, isLoading } = useAuth();
   const [error, setError] = useState("");
 
   const form = useForm<RegisterFormValues>({
@@ -39,7 +39,11 @@ export default function RegisterPage() {
   const onSubmit = async (values: RegisterFormValues) => {
     try {
       setError("");
-      await register(values.name, values.email, values.password);
+      await registerMutation.mutateAsync({
+        name: values.name,
+        email: values.email,
+        password: values.password
+      });
     } catch (err) {
       setError("Registration failed. Please try again.");
     }

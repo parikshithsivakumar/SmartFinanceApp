@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { Link } from "wouter";
 
 export default function TopNav() {
-  const { user, logout } = useAuth();
+  const { user, logoutMutation } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -52,7 +52,7 @@ export default function TopNav() {
               </div>
               <div 
                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer" 
-                onClick={logout}
+                onClick={() => logoutMutation.mutate()}
               >
                 Sign Out
               </div>
@@ -101,7 +101,7 @@ export default function TopNav() {
                 
                 <div 
                   className="flex items-center px-4 py-2 text-gray-300 rounded-md hover:bg-gray-800 hover:text-white group cursor-pointer mt-8" 
-                  onClick={logout}
+                  onClick={() => logoutMutation.mutate()}
                 >
                   <i className="ri-logout-box-line mr-3 text-lg"></i>
                   <span>Sign Out</span>
