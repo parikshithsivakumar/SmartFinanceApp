@@ -22,7 +22,7 @@ export default function UploadPage() {
   const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       const token = localStorage.getItem("token");
-      const response = await fetch("/api/upload", {
+      const response = await fetch("/api/documents/upload", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -96,7 +96,8 @@ export default function UploadPage() {
     }
     
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("document", file);
+    formData.append("name", file.name);
     formData.append("documentType", documentType);
     formData.append("extractInfo", extractInfo.toString());
     formData.append("summarize", summarize.toString());
