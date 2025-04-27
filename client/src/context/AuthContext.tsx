@@ -71,8 +71,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
+      
+      // Set a timeout to reset loading state in case of unhandled errors
+      const timeoutId = setTimeout(() => {
+        if (setIsLoading) {
+          setIsLoading(false);
+          console.warn("Login request timeout - forcing loading state reset");
+        }
+      }, 10000);
+      
       const res = await apiRequest("POST", "/api/auth/login", { email, password });
       const data = await res.json();
+      
+      // Clear the timeout since request completed successfully
+      clearTimeout(timeoutId);
 
       localStorage.setItem("token", data.token);
       setUser(data.user);
@@ -97,12 +109,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (name: string, email: string, password: string) => {
     try {
       setIsLoading(true);
+      
+      // Set a timeout to reset loading state in case of unhandled errors
+      const timeoutId = setTimeout(() => {
+        if (setIsLoading) {
+          setIsLoading(false);
+          console.warn("Registration request timeout - forcing loading state reset");
+        }
+      }, 10000);
+      
       const res = await apiRequest("POST", "/api/auth/register", {
         name,
         email,
         password,
       });
       const data = await res.json();
+      
+      // Clear the timeout since request completed successfully
+      clearTimeout(timeoutId);
 
       localStorage.setItem("token", data.token);
       setUser(data.user);
