@@ -10,6 +10,7 @@ import HistoryPage from "@/pages/HistoryPage";
 import ComparisonPage from "@/pages/ComparisonPage";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/LoginPage";
+import RegisterPage from "@/pages/RegisterPage";
 
 function App() {
   return (
@@ -34,6 +35,18 @@ function App() {
           </PublicOnlyRoute>
         </Route>
         
+        <Route path="/register">
+          <PublicOnlyRoute>
+            <RegisterPage />
+          </PublicOnlyRoute>
+        </Route>
+        
+        <Route path="/dashboard">
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        </Route>
+        
         <Route path="/upload">
           <ProtectedRoute>
             <UploadPage />
@@ -52,7 +65,7 @@ function App() {
           </ProtectedRoute>
         </Route>
         
-        <Route>
+        <Route path="/:rest*">
           <NotFound />
         </Route>
       </Switch>
