@@ -47,7 +47,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Protected routes
   app.get('/api/auth/profile', authenticate, getProfile);
-  app.post('/api/upload', authenticate, upload.single('file'), uploadDocument);
+  
+  // Document routes
+  app.post('/api/documents/upload', authenticate, upload.single('document'), uploadDocument);
   app.get('/api/documents', authenticate, getDocumentHistory);
   app.get('/api/documents/:id', authenticate, getDocumentById);
   app.delete('/api/documents/:id', authenticate, deleteDocument);

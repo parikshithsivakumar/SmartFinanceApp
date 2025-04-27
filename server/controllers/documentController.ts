@@ -22,6 +22,12 @@ if (!fs.existsSync(UPLOAD_DIR)) {
 
 export const uploadDocument = async (req: Request, res: Response) => {
   try {
+    console.log('Upload request received', { 
+      body: req.body, 
+      file: req.file,
+      headers: req.headers
+    });
+    
     // Check if file exists in request
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -29,57 +35,95 @@ export const uploadDocument = async (req: Request, res: Response) => {
     
     // Get user ID from authenticated request
     const userId = (req as any).user.id;
+    console.log('User ID from token:', userId);
 
     // Get uploaded file information
     const file = req.file;
     const filePath = path.join(UPLOAD_DIR, file.filename);
+    console.log('File path:', filePath);
     
-    // Get document type from request body
-    const { documentType } = req.body;
-    if (!documentType || !['Financial', 'Legal'].includes(documentType)) {
-      return res.status(400).json({ message: 'Invalid document type' });
-    }
+    // Get document type from request body or use default
+    const documentType = req.body.documentType || 'Financial';
+    console.log('Document type:', documentType);
     
-    // Get processing options
+    // Get document name from request body or use original filename
+    const name = req.body.name || file.originalname;
+    console.log('Document name:', name);
+    
+    // Get processing options with defaults
     const extractInfo = req.body.extractInfo === 'true';
     const summarize = req.body.summarize === 'true';
     const anomalyDetection = req.body.anomalyDetection === 'true';
     const complianceCheck = req.body.complianceCheck === 'true';
     
     // Process document
+    console.log('Processing document...');
+    
     // 1. Extract text from document
-    const extractedText = await extractTextFromDocument(filePath);
+    let extractedText = '';
+    try {
+      extractedText = await extractTextFromDocument(filePath);
+      console.log('Text extraction complete');
+    } catch (err) {
+      console.error('Text extraction error:', err);
+      extractedText = '';
+    }
     
     // 2. Initialize result object
     let documentData: any = {
       userId,
-      name: file.originalname,
+      name,
       filePath,
       fileType: documentType,
-      extractedData: {},
-      anomalies: {},
-      complianceStatus: 'Not Checked'
+      extractedData: null,
+      anomalies: null,
+      // Default compliance status to Warning until checked
+      complianceStatus: 'Warning',
+      summary: null
     };
     
     // 3. Apply processing options if selected
     if (summarize && extractedText) {
-      documentData.summary = await summarizeText(extractedText);
+      try {
+        documentData.summary = await summarizeText(extractedText);
+      } catch (err) {
+        console.error('Summarization error:', err);
+        documentData.summary = 'Error generating summary';
+      }
     }
     
     if (extractInfo && extractedText) {
-      documentData.extractedData = await extractTextFromDocument(filePath, true);
+      try {
+        documentData.extractedData = await extractTextFromDocument(filePath, true);
+      } catch (err) {
+        console.error('Entity extraction error:', err);
+        documentData.extractedData = {};
+      }
     }
     
     if (anomalyDetection && extractedText) {
-      documentData.anomalies = await detectAnomalies(extractedText, documentType);
+      try {
+        documentData.anomalies = await detectAnomalies(extractedText, documentType);
+      } catch (err) {
+        console.error('Anomaly detection error:', err);
+        documentData.anomalies = {};
+      }
     }
     
     if (complianceCheck && extractedText) {
-      documentData.complianceStatus = await checkCompliance(extractedText, documentType);
+      try {
+        documentData.complianceStatus = await checkCompliance(extractedText, documentType);
+      } catch (err) {
+        console.error('Compliance check error:', err);
+        // Set to a valid enum value
+        documentData.complianceStatus = 'Fail';
+      }
     }
     
     // 4. Save document information to database
+    console.log('Saving document to database:', documentData);
     const document = await storage.createDocument(documentData);
+    console.log('Document saved successfully:', document);
     
     return res.status(201).json({
       message: 'Document uploaded and processed successfully',
