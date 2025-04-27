@@ -1,16 +1,35 @@
 import mongoose from 'mongoose';
 
-// MongoDB connection URI (safely loaded from environment variables)
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://parikshithsr19:Parikshithsivakumar@cluster0.vfid2yq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+// MongoDB connection URI (use a local MongoDB instance for development)
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/smart-finance';
 
-// Connect to MongoDB
+// Max retries and timeout settings
+const MAX_RETRIES = 2;
+const CONNECT_TIMEOUT_MS = 5000; // 5 seconds timeout
+
+// Connect to MongoDB with retries
 export const connectToDatabase = async () => {
-  try {
-    await mongoose.connect(MONGODB_URI);
-    console.log('Connected to MongoDB');
-  } catch (error) {
-    console.error('Failed to connect to MongoDB', error);
-    throw error;
+  let retries = 0;
+  
+  while (retries < MAX_RETRIES) {
+    try {
+      await mongoose.connect(MONGODB_URI, {
+        serverSelectionTimeoutMS: CONNECT_TIMEOUT_MS
+      });
+      console.log('Connected to MongoDB');
+      return;
+    } catch (error) {
+      retries++;
+      console.error(`Failed to connect to MongoDB (attempt ${retries}/${MAX_RETRIES})`, error);
+      
+      if (retries >= MAX_RETRIES) {
+        console.log('Max retries reached, will use memory storage instead');
+        throw error;
+      }
+      
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
   }
 };
 

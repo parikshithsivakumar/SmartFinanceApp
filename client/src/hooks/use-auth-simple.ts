@@ -23,9 +23,10 @@ type RegisterData = {
 };
 
 export function useAuthUser() {
-  return useQuery<User | null>({
+  return useQuery<{user: User} | null>({
     queryKey: ["/api/auth/profile"],
     queryFn: getQueryFn({ on401: "returnNull" }),
+    select: (data) => data ? data : null,
   });
 }
 
