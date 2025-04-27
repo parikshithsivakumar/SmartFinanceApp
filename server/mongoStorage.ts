@@ -21,22 +21,45 @@ function convertToDocument(doc: any): Document {
 
 // Helper function to convert MongoDB document to User type
 function convertToUser(doc: any): User {
-  return {
-    id: doc.id as number,
+  const result = {
+    // Use MongoDB _id if id is not present
+    id: doc.id || doc._id.toString(),
     name: doc.name as string,
     email: doc.email as string,
     password: doc.password as string,
     createdAt: doc.createdAt as Date
   };
+  console.log('Converted user:', result);
+  return result;
 }
 
 export class MongoStorage implements IStorage {
   // User operations
-  async getUser(id: number): Promise<User | undefined> {
-    const user = await UserModel.findOne({ id });
-    if (!user) return undefined;
-    
-    return convertToUser(user);
+  async getUser(id: number | string): Promise<User | undefined> {
+    console.log(`Looking for user with ID: ${id}`);
+    try {
+      // Try to find user by _id if it looks like a MongoDB ObjectId
+      if (typeof id === 'string' && id.length === 24) {
+        const user = await UserModel.findById(id);
+        if (user) {
+          console.log('Found user by MongoDB _id:', user);
+          return convertToUser(user);
+        }
+      }
+      
+      // Fall back to our custom ID field
+      const user = await UserModel.findOne({ id });
+      if (!user) {
+        console.log('User not found');
+        return undefined;
+      }
+      
+      console.log('Found user by custom id:', user);
+      return convertToUser(user);
+    } catch (error) {
+      console.error('Error finding user:', error);
+      return undefined;
+    }
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {

@@ -5,7 +5,7 @@ import { connectToDatabase } from './mongodb';
 // Interface for storage operations
 export interface IStorage {
   // User operations
-  getUser(id: number): Promise<User | undefined>;
+  getUser(id: number | string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   
@@ -30,7 +30,11 @@ export class MemStorage implements IStorage {
   }
 
   // User operations
-  async getUser(id: number): Promise<User | undefined> {
+  async getUser(id: number | string): Promise<User | undefined> {
+    if (typeof id === 'string') {
+      id = parseInt(id, 10);
+      if (isNaN(id)) return undefined;
+    }
     return this.users.get(id);
   }
 
