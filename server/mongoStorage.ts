@@ -70,21 +70,29 @@ export class MongoStorage implements IStorage {
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    // Get the highest user ID and increment by 1
-    const maxUser = await UserModel.findOne().sort('-id').limit(1);
-    const id = maxUser ? (maxUser.id as number) + 1 : 1;
-    
-    const newUser = new UserModel({
-      id,
-      name: user.name,
-      email: user.email,
-      password: user.password,
-      createdAt: new Date()
-    });
-    
-    await newUser.save();
-    
-    return convertToUser(newUser);
+    try {
+      // Get the highest user ID and increment by 1
+      const maxUser = await UserModel.findOne().sort('-id').limit(1);
+      // Make sure we have a valid number for the ID
+      const id = maxUser && typeof maxUser.id === 'number' ? maxUser.id + 1 : 1;
+      console.log(`Creating new user with ID: ${id}`);
+      
+      const newUser = new UserModel({
+        id: id,
+        name: user.name,
+        email: user.email,
+        password: user.password,
+        createdAt: new Date()
+      });
+      
+      const savedUser = await newUser.save();
+      console.log('Saved user:', savedUser);
+      
+      return convertToUser(savedUser);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
   }
 
   // Document operations
@@ -101,26 +109,34 @@ export class MongoStorage implements IStorage {
   }
 
   async createDocument(document: InsertDocument): Promise<Document> {
-    // Get the highest document ID and increment by 1
-    const maxDoc = await DocumentModel.findOne().sort('-id').limit(1);
-    const id = maxDoc ? (maxDoc.id as number) + 1 : 1;
-    
-    const newDocument = new DocumentModel({
-      id,
-      userId: document.userId,
-      name: document.name,
-      filePath: document.filePath,
-      fileType: document.fileType,
-      summary: document.summary || null,
-      extractedData: document.extractedData || null,
-      anomalies: document.anomalies || null,
-      complianceStatus: document.complianceStatus || null,
-      uploadDate: new Date()
-    });
-    
-    await newDocument.save();
-    
-    return convertToDocument(newDocument);
+    try {
+      // Get the highest document ID and increment by 1
+      const maxDoc = await DocumentModel.findOne().sort('-id').limit(1);
+      // Make sure we have a valid number for the ID
+      const id = maxDoc && typeof maxDoc.id === 'number' ? maxDoc.id + 1 : 1;
+      console.log(`Creating new document with ID: ${id}`);
+      
+      const newDocument = new DocumentModel({
+        id: id,
+        userId: document.userId,
+        name: document.name,
+        filePath: document.filePath,
+        fileType: document.fileType,
+        summary: document.summary || null,
+        extractedData: document.extractedData || null,
+        anomalies: document.anomalies || null,
+        complianceStatus: document.complianceStatus || null,
+        uploadDate: new Date()
+      });
+      
+      const savedDocument = await newDocument.save();
+      console.log('Saved document:', savedDocument);
+      
+      return convertToDocument(savedDocument);
+    } catch (error) {
+      console.error('Error creating document:', error);
+      throw error;
+    }
   }
 
   async deleteDocument(id: number): Promise<boolean> {
