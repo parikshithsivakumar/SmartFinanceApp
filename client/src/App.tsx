@@ -12,6 +12,7 @@ import RegisterPage from "@/pages/RegisterPage";
 import DashboardPage from "@/pages/DashboardPage";
 import UploadPage from "@/pages/UploadPage";
 import HistoryPage from "@/pages/HistoryPage";
+import ComparisonPage from "@/pages/ComparisonPage";
 import NotFound from "@/pages/not-found";
 
 // Components
@@ -54,6 +55,7 @@ function Router() {
       <Route path="/dashboard" component={() => <PrivateRoute component={DashboardPage} />} />
       <Route path="/upload" component={() => <PrivateRoute component={UploadPage} />} />
       <Route path="/history" component={() => <PrivateRoute component={HistoryPage} />} />
+      <Route path="/compare" component={() => <PrivateRoute component={ComparisonPage} />} />
       <Route component={NotFound} />
     </Switch>
   );
