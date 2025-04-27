@@ -9,7 +9,8 @@ import {
   uploadDocument, 
   getDocumentHistory, 
   getDocumentById,
-  deleteDocument
+  deleteDocument,
+  compareDocuments
 } from "./controllers/documentController";
 
 // Configure multer for file uploads
@@ -53,6 +54,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/documents', authenticate, getDocumentHistory);
   app.get('/api/documents/:id', authenticate, getDocumentById);
   app.delete('/api/documents/:id', authenticate, deleteDocument);
+  app.post('/api/documents/compare', authenticate, compareDocuments);
 
   const httpServer = createServer(app);
   return httpServer;

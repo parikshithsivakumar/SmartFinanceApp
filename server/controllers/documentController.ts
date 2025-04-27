@@ -9,7 +9,9 @@ import {
   extractTextFromDocument, 
   summarizeText, 
   detectAnomalies, 
-  checkCompliance 
+  checkCompliance,
+  calculateTextSimilarity,
+  findInfoDifferences
 } from '../utils/documentProcessing';
 
 // Upload directory
@@ -62,7 +64,9 @@ export const uploadDocument = async (req: Request, res: Response) => {
     // 1. Extract text from document
     let extractedText = '';
     try {
-      extractedText = await extractTextFromDocument(filePath);
+      const result = await extractTextFromDocument(filePath);
+      // Handle case where extractTextFromDocument returns either string or Record<string, string[]>
+      extractedText = typeof result === 'string' ? result : '';
       console.log('Text extraction complete');
     } catch (err) {
       console.error('Text extraction error:', err);
@@ -217,5 +221,103 @@ export const deleteDocument = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Document delete error:', error);
     return res.status(500).json({ message: 'Server error while deleting document' });
+  }
+};
+
+// Compare two documents and return differences
+export const compareDocuments = async (req: Request, res: Response) => {
+  try {
+    // Get document IDs from request
+    const { documentId1, documentId2 } = req.body;
+    
+    if (!documentId1 || !documentId2) {
+      return res.status(400).json({ message: 'Two document IDs are required for comparison' });
+    }
+    
+    // Get user ID from authenticated request
+    const userId = (req as any).user.id;
+    
+    // Fetch both documents
+    const document1 = await storage.getDocumentById(documentId1);
+    const document2 = await storage.getDocumentById(documentId2);
+    
+    // Validate documents
+    if (!document1 || document1.userId !== userId) {
+      return res.status(404).json({ message: 'First document not found or access denied' });
+    }
+    
+    if (!document2 || document2.userId !== userId) {
+      return res.status(404).json({ message: 'Second document not found or access denied' });
+    }
+    
+    // Extract text from both documents if they exist
+    let text1 = '';
+    let text2 = '';
+    
+    if (fs.existsSync(document1.filePath)) {
+      try {
+        const result1 = await extractTextFromDocument(document1.filePath);
+        text1 = typeof result1 === 'string' ? result1 : '';
+        console.log('Extracted text from first document');
+      } catch (err) {
+        console.error('Error extracting text from first document:', err);
+        return res.status(500).json({ message: 'Error processing first document' });
+      }
+    } else {
+      return res.status(404).json({ message: 'First document file not found' });
+    }
+    
+    if (fs.existsSync(document2.filePath)) {
+      try {
+        const result2 = await extractTextFromDocument(document2.filePath);
+        text2 = typeof result2 === 'string' ? result2 : '';
+        console.log('Extracted text from second document');
+      } catch (err) {
+        console.error('Error extracting text from second document:', err);
+        return res.status(500).json({ message: 'Error processing second document' });
+      }
+    } else {
+      return res.status(404).json({ message: 'Second document file not found' });
+    }
+    
+    // Compare documents by:
+    // 1. Overall similarity score
+    // 2. Key information differences
+    // 3. Important dates/amounts/entities differences
+    
+    // Calculate similarity score (simple implementation)
+    const similarityScore = calculateTextSimilarity(text1, text2);
+    
+    // Extract key information from both documents
+    const info1 = await extractTextFromDocument(document1.filePath, true) as any;
+    const info2 = await extractTextFromDocument(document2.filePath, true) as any;
+    
+    // Find differences in extracted information
+    const differences = findInfoDifferences(info1, info2);
+    
+    // Return comparison results
+    return res.status(200).json({
+      comparison: {
+        documents: [
+          { 
+            id: document1.id, 
+            name: document1.name,
+            type: document1.fileType,
+            uploadDate: document1.uploadDate
+          },
+          { 
+            id: document2.id, 
+            name: document2.name,
+            type: document2.fileType,
+            uploadDate: document2.uploadDate
+          }
+        ],
+        similarityScore,
+        differences
+      }
+    });
+  } catch (error) {
+    console.error('Document comparison error:', error);
+    return res.status(500).json({ message: 'Server error during document comparison' });
   }
 };

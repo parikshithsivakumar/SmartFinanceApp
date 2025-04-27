@@ -29,10 +29,8 @@ export const extractTextFromDocument = async (filePath: string, extractEntities:
     
     // For image files and PDFs, use OCR
     if (['.jpg', '.jpeg', '.png', '.pdf'].includes(fileExt)) {
-      // Initialize Tesseract worker
-      const worker = await createWorker();
-      await worker.loadLanguage('eng');
-      await worker.initialize('eng');
+      // Initialize Tesseract worker (updated for latest Tesseract.js)
+      const worker = await createWorker('eng');
       
       // Recognize text
       const { data: { text } } = await worker.recognize(filePath);
@@ -205,5 +203,103 @@ export const checkCompliance = async (text: string, documentType: string) => {
   } catch (error) {
     console.error('Compliance checking error:', error);
     return 'Error';
+  }
+};
+
+/**
+ * Calculate text similarity between two documents
+ * @param text1 First document text
+ * @param text2 Second document text
+ * @returns Similarity score (0-100)
+ */
+export const calculateTextSimilarity = (text1: string, text2: string): number => {
+  try {
+    // Remove extra whitespace and convert to lowercase
+    const normalizedText1 = text1.toLowerCase().replace(/\s+/g, ' ').trim();
+    const normalizedText2 = text2.toLowerCase().replace(/\s+/g, ' ').trim();
+    
+    // Split into words
+    const words1 = normalizedText1.split(/\W+/).filter(word => word.length > 0);
+    const words2 = normalizedText2.split(/\W+/).filter(word => word.length > 0);
+    
+    // Count word frequencies
+    const freq1: Record<string, number> = {};
+    const freq2: Record<string, number> = {};
+    
+    words1.forEach(word => {
+      freq1[word] = (freq1[word] || 0) + 1;
+    });
+    
+    words2.forEach(word => {
+      freq2[word] = (freq2[word] || 0) + 1;
+    });
+    
+    // Calculate Jaccard similarity (intersection over union)
+    const allWords = new Set([...words1, ...words2]);
+    let intersection = 0;
+    let union = 0;
+    
+    allWords.forEach(word => {
+      const count1 = freq1[word] || 0;
+      const count2 = freq2[word] || 0;
+      
+      intersection += Math.min(count1, count2);
+      union += Math.max(count1, count2);
+    });
+    
+    // Calculate similarity as a percentage
+    const similarity = union > 0 ? (intersection / union) * 100 : 0;
+    
+    // Round to 2 decimal places
+    return Math.round(similarity * 100) / 100;
+  } catch (error) {
+    console.error('Error calculating text similarity:', error);
+    return 0;
+  }
+};
+
+/**
+ * Find differences between extracted information from two documents
+ * @param info1 First document extracted information
+ * @param info2 Second document extracted information
+ * @returns Structured differences
+ */
+export const findInfoDifferences = (info1: Record<string, any>, info2: Record<string, any>): Record<string, any> => {
+  try {
+    const differences: Record<string, any> = {};
+    
+    // Combine all possible keys
+    const allKeys = new Set([
+      ...Object.keys(info1 || {}), 
+      ...Object.keys(info2 || {})
+    ]);
+    
+    // Compare each category
+    allKeys.forEach(key => {
+      const values1 = info1?.[key] || [];
+      const values2 = info2?.[key] || [];
+      
+      // Simple array comparison
+      if (Array.isArray(values1) && Array.isArray(values2)) {
+        // Check for additions (in doc2 but not in doc1)
+        const additions = values2.filter(value => !values1.includes(value));
+        
+        // Check for removals (in doc1 but not in doc2)
+        const removals = values1.filter(value => !values2.includes(value));
+        
+        // Only add to differences if there are actual changes
+        if (additions.length > 0 || removals.length > 0) {
+          differences[key] = {
+            additions,
+            removals
+          };
+        }
+      }
+    });
+    
+    return differences;
+  } catch (error) {
+    console.error('Error comparing document information:', error);
+    return { error: 'Failed to compare document information' };
   }
 };
