@@ -8,9 +8,10 @@ async function testConnection() {
     console.log('Successfully connected to MongoDB!');
     
     // Check if we can create a collection
-    const db = mongoose.connection.db;
-    const collections = await db.listCollections().toArray();
-    console.log('Existing collections:', collections.map(c => c.name));
+    if (mongoose.connection.db) {
+      const collections = await mongoose.connection.db.listCollections().toArray();
+      console.log('Existing collections:', collections.map(c => c.name));
+    }
     
     // Close the connection
     await mongoose.disconnect();

@@ -83,26 +83,10 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Try to connect to MongoDB with fallback to in-memory storage
-let useMongoStorage = false;
+// Connect to MongoDB
+connectToDatabase()
+  .then(() => console.log('MongoDB connection established'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
-try {
-  // Attempt MongoDB connection
-  connectToDatabase()
-    .then(() => {
-      console.log('MongoDB connection established');
-      useMongoStorage = true;
-    })
-    .catch(err => {
-      console.error('MongoDB connection error:', err);
-      console.log('Falling back to in-memory storage');
-    });
-} catch (error) {
-  console.error('Error connecting to MongoDB:', error);
-  console.log('Falling back to in-memory storage');
-}
-
-// Export storage instance with fallback mechanism
-export const storage = new MemStorage(); // Start with in-memory storage
-// Note: This approach uses in-memory storage throughout the lifetime of the application
-// In a production environment, we would need a more robust fallback mechanism
+// Use MongoDB storage
+export const storage = new MongoStorage();
