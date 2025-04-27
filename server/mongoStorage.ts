@@ -6,7 +6,8 @@ import { DocumentModel } from './models/Document';
 // Helper function to convert MongoDB document to application schema type
 function convertToDocument(doc: any): Document {
   return {
-    id: doc.id as number,
+    // Use MongoDB _id as the document ID if no custom id is present
+    id: doc._id ? doc._id.toString() : doc.id,
     userId: doc.userId as number,
     name: doc.name as string,
     filePath: doc.filePath as string,
