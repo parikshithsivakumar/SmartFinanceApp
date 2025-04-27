@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
 interface JwtPayload {
-  id: number;
+  id: string | number;
   email: string;
 }
 
