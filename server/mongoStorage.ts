@@ -101,11 +101,36 @@ export class MongoStorage implements IStorage {
     return documents.map(doc => convertToDocument(doc));
   }
 
-  async getDocumentById(id: number): Promise<Document | undefined> {
-    const doc = await DocumentModel.findOne({ id });
-    if (!doc) return undefined;
-    
-    return convertToDocument(doc);
+  async getDocumentById(id: number | string): Promise<Document | undefined> {
+    try {
+      console.log(`Looking for document with ID: ${id}`);
+      
+      // Try to find document by MongoDB _id if it's a string
+      if (typeof id === 'string' && id.length === 24) {
+        try {
+          const doc = await DocumentModel.findById(id);
+          if (doc) {
+            console.log('Found document by MongoDB _id:', doc);
+            return convertToDocument(doc);
+          }
+        } catch (error) {
+          console.error('Error finding document by _id:', error);
+        }
+      }
+      
+      // Fall back to our custom ID field
+      const doc = await DocumentModel.findOne({ id });
+      if (!doc) {
+        console.log('Document not found');
+        return undefined;
+      }
+      
+      console.log('Found document by custom id:', doc);
+      return convertToDocument(doc);
+    } catch (error) {
+      console.error('Error finding document:', error);
+      return undefined;
+    }
   }
 
   async createDocument(document: InsertDocument): Promise<Document> {
@@ -139,8 +164,31 @@ export class MongoStorage implements IStorage {
     }
   }
 
-  async deleteDocument(id: number): Promise<boolean> {
-    const result = await DocumentModel.deleteOne({ id });
-    return result.deletedCount > 0;
+  async deleteDocument(id: number | string): Promise<boolean> {
+    try {
+      console.log(`Deleting document with ID: ${id}`);
+      
+      // Try to delete by MongoDB _id if it's a string that looks like an ObjectId
+      if (typeof id === 'string' && id.length === 24) {
+        try {
+          const result = await DocumentModel.findByIdAndDelete(id);
+          if (result) {
+            console.log('Deleted document by MongoDB _id');
+            return true;
+          }
+        } catch (error) {
+          console.error('Error deleting document by _id:', error);
+        }
+      }
+      
+      // Fall back to our custom ID field
+      const result = await DocumentModel.deleteOne({ id });
+      const success = result.deletedCount > 0;
+      console.log(`Deleted document by custom id: ${success}`);
+      return success;
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      return false;
+    }
   }
 }

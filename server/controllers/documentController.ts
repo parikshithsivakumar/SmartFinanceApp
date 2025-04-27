@@ -164,10 +164,12 @@ export const getDocumentHistory = async (req: Request, res: Response) => {
 
 export const getDocumentById = async (req: Request, res: Response) => {
   try {
-    const documentId = parseInt(req.params.id);
+    const documentId = req.params.id;
+    console.log(`Fetching document with ID: ${documentId}`);
     
     // Get user ID from authenticated request
     const userId = (req as any).user.id;
+    console.log(`User ID from token: ${userId}`);
     
     // Find document
     const document = await storage.getDocumentById(documentId);
@@ -186,10 +188,12 @@ export const getDocumentById = async (req: Request, res: Response) => {
 
 export const deleteDocument = async (req: Request, res: Response) => {
   try {
-    const documentId = parseInt(req.params.id);
+    const documentId = req.params.id;
+    console.log(`Deleting document with ID: ${documentId}`);
     
     // Get user ID from authenticated request
     const userId = (req as any).user.id;
+    console.log(`User ID from token: ${userId}`);
     
     // Find document
     const document = await storage.getDocumentById(documentId);
@@ -201,11 +205,13 @@ export const deleteDocument = async (req: Request, res: Response) => {
     
     // Delete document file
     if (fs.existsSync(document.filePath)) {
+      console.log(`Deleting file: ${document.filePath}`);
       fs.unlinkSync(document.filePath);
     }
     
     // Delete document from database
-    await storage.deleteDocument(documentId);
+    const result = await storage.deleteDocument(documentId);
+    console.log(`Document deletion result: ${result}`);
     
     return res.status(200).json({ message: 'Document deleted successfully' });
   } catch (error) {

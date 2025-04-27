@@ -11,9 +11,9 @@ export interface IStorage {
   
   // Document operations
   getDocumentsByUserId(userId: number): Promise<Document[]>;
-  getDocumentById(id: number): Promise<Document | undefined>;
+  getDocumentById(id: number | string): Promise<Document | undefined>;
   createDocument(document: InsertDocument): Promise<Document>;
-  deleteDocument(id: number): Promise<boolean>;
+  deleteDocument(id: number | string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -59,7 +59,11 @@ export class MemStorage implements IStorage {
     );
   }
 
-  async getDocumentById(id: number): Promise<Document | undefined> {
+  async getDocumentById(id: number | string): Promise<Document | undefined> {
+    if (typeof id === 'string') {
+      id = parseInt(id, 10);
+      if (isNaN(id)) return undefined;
+    }
     return this.documents.get(id);
   }
 
@@ -82,7 +86,11 @@ export class MemStorage implements IStorage {
     return document;
   }
 
-  async deleteDocument(id: number): Promise<boolean> {
+  async deleteDocument(id: number | string): Promise<boolean> {
+    if (typeof id === 'string') {
+      id = parseInt(id, 10);
+      if (isNaN(id)) return false;
+    }
     return this.documents.delete(id);
   }
 }
