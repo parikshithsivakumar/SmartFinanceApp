@@ -1,4 +1,6 @@
 import { users, documents, type User, type InsertUser, type Document, type InsertDocument } from "@shared/schema";
+import { MongoStorage } from './mongoStorage';
+import { connectToDatabase } from './mongodb';
 
 // Interface for storage operations
 export interface IStorage {
@@ -60,7 +62,18 @@ export class MemStorage implements IStorage {
   async createDocument(insertDocument: InsertDocument): Promise<Document> {
     const id = this.documentIdCounter++;
     const uploadDate = new Date();
-    const document: Document = { ...insertDocument, id, uploadDate };
+    const document: Document = { 
+      id, 
+      userId: insertDocument.userId,
+      name: insertDocument.name,
+      filePath: insertDocument.filePath,
+      fileType: insertDocument.fileType,
+      summary: insertDocument.summary || null,
+      extractedData: insertDocument.extractedData || null,
+      anomalies: insertDocument.anomalies || null,
+      complianceStatus: insertDocument.complianceStatus || null,
+      uploadDate
+    };
     this.documents.set(id, document);
     return document;
   }
@@ -70,4 +83,10 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Connect to MongoDB
+connectToDatabase()
+  .then(() => console.log('MongoDB connection established'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+// Use MongoDB storage
+export const storage = new MongoStorage();
