@@ -3,6 +3,11 @@ import { MongoStorage } from './mongoStorage';
 import { connectToDatabase } from './mongodb';
 
 // Interface for storage operations
+import session from "express-session";
+import createMemoryStore from "memorystore";
+
+const MemoryStore = createMemoryStore(session);
+
 export interface IStorage {
   // User operations
   getUser(id: number | string): Promise<User | undefined>;
@@ -14,6 +19,9 @@ export interface IStorage {
   getDocumentById(id: number | string): Promise<Document | undefined>;
   createDocument(document: InsertDocument): Promise<Document>;
   deleteDocument(id: number | string): Promise<boolean>;
+  
+  // Session store
+  sessionStore: session.Store;
 }
 
 export class MemStorage implements IStorage {
