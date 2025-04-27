@@ -29,12 +29,16 @@ export class MemStorage implements IStorage {
   private documents: Map<number, Document>;
   private userIdCounter: number;
   private documentIdCounter: number;
+  public sessionStore: session.Store;
 
   constructor() {
     this.users = new Map();
     this.documents = new Map();
     this.userIdCounter = 1;
     this.documentIdCounter = 1;
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    });
   }
 
   // User operations

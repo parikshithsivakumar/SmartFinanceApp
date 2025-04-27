@@ -1,10 +1,9 @@
-import express, { type Express } from "express";
+import express, { type Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import multer from "multer";
 import path from "path";
-import { authenticate } from "./middleware/auth";
-import { register, login, getProfile } from "./controllers/authController";
+import { setupAuth } from "./auth";
 import { 
   uploadDocument, 
   getDocumentHistory, 
@@ -42,19 +41,22 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Public routes
-  app.post('/api/auth/register', register);
-  app.post('/api/auth/login', login);
+  // Setup authentication with Passport
+  setupAuth(app);
 
-  // Protected routes
-  app.get('/api/auth/profile', authenticate, getProfile);
-  
-  // Document routes
-  app.post('/api/documents/upload', authenticate, upload.single('document'), uploadDocument);
-  app.get('/api/documents', authenticate, getDocumentHistory);
-  app.get('/api/documents/:id', authenticate, getDocumentById);
-  app.delete('/api/documents/:id', authenticate, deleteDocument);
-  app.post('/api/documents/compare', authenticate, compareDocuments);
+  // Document routes - protect with isAuthenticated middleware
+  const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+    if (req.isAuthenticated()) {
+      return next();
+    }
+    res.status(401).json({ message: 'Not authenticated' });
+  };
+
+  app.post('/api/documents/upload', isAuthenticated, upload.single('document'), uploadDocument);
+  app.get('/api/documents', isAuthenticated, getDocumentHistory);
+  app.get('/api/documents/:id', isAuthenticated, getDocumentById);
+  app.delete('/api/documents/:id', isAuthenticated, deleteDocument);
+  app.post('/api/documents/compare', isAuthenticated, compareDocuments);
 
   const httpServer = createServer(app);
   return httpServer;

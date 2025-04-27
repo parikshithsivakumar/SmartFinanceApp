@@ -2,6 +2,8 @@ import { IStorage } from './storage';
 import { User, InsertUser, Document, InsertDocument } from '@shared/schema';
 import { UserModel } from './models/User';
 import { DocumentModel } from './models/Document';
+import session from 'express-session';
+import MongoStore from 'connect-mongo';
 
 // Helper function to convert MongoDB document to application schema type
 function convertToDocument(doc: any): Document {
@@ -35,6 +37,18 @@ function convertToUser(doc: any): User {
 }
 
 export class MongoStorage implements IStorage {
+  public sessionStore: session.Store;
+  
+  constructor() {
+    // Initialize MongoDB session store
+    this.sessionStore = MongoStore.create({
+      // Use the existing MongoDB connection
+      mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/smart-finance',
+      collectionName: 'sessions',
+      ttl: 24 * 60 * 60 // 1 day
+    });
+  }
+  
   // User operations
   async getUser(id: number | string): Promise<User | undefined> {
     console.log(`Looking for user with ID: ${id}`);
