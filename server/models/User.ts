@@ -1,2 +1,23 @@
-// This file is included for organizational purposes, but functionality is handled by storage.ts
-// In a real-world application with a database, this would contain Mongoose models or similar
+import mongoose from 'mongoose';
+
+const UserSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  password: {
+    type: String,
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+export const UserModel = mongoose.model('User', UserSchema);
