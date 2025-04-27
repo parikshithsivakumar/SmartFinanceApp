@@ -16,34 +16,22 @@ export default function ComparisonPage() {
   // Fetch user's documents
   const { data: documentData, isLoading: isLoadingDocuments } = useQuery({
     queryKey: ['/api/documents'],
-    queryFn: async () => {
-      const response = await fetch('/api/documents', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch documents');
-      }
-      
-      return response.json();
-    }
   });
 
   // Compare documents mutation
   const compareDocumentsMutation = useMutation({
     mutationFn: async ({ document1Id, document2Id }: { document1Id: string; document2Id: string }) => {
-      const response = await apiRequest({
-        url: '/api/documents/compare',
-        method: 'POST',
-        data: {
+      const response = await apiRequest(
+        'POST',
+        '/api/documents/compare',
+        {
           documentId1: document1Id,
           documentId2: document2Id
         }
-      });
+      );
       
-      return response;
+      const responseData = await response.json();
+      return responseData;
     },
     onSuccess: (data) => {
       setComparisonResult(data.comparison);
