@@ -9,7 +9,7 @@ import UploadPage from "@/pages/UploadPage";
 import HistoryPage from "@/pages/HistoryPage";
 import ComparisonPage from "@/pages/ComparisonPage";
 import NotFound from "@/pages/not-found";
-import AuthPage from "./pages/auth-page";
+import LoginPage from "@/pages/LoginPage";
 
 function App() {
   return (
@@ -24,7 +24,13 @@ function App() {
         
         <Route path="/auth">
           <PublicOnlyRoute>
-            <AuthPage />
+            <LoginPage />
+          </PublicOnlyRoute>
+        </Route>
+        
+        <Route path="/login">
+          <PublicOnlyRoute>
+            <LoginPage />
           </PublicOnlyRoute>
         </Route>
         
